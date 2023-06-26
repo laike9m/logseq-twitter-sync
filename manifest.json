@@ -1,0 +1,59 @@
+{
+  "name": "Logseq Twitter Sync",
+  "version": "0.0.1",
+  "manifest_version": 3,
+  "description": "This extension was created with the awesome extensionizr.com",
+  "homepage_url": "http://extensionizr.com",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA57e9EWCca9Iq+t8fePFXmihPEYD7wjZmNdmdxYAH7Yp3rVjGVWD+iYj6qDOBz3PTetpceLRgGB3gtkO+hv8kJREyG1D50DVv/9QGMlpCJY9Lu9elHvtWjHStvx13JfHRxshzqt0OJzugO/g9D1Ktimq3Mv/Z8fLgLhW5dilYx2ZR6W2XeVmJ2XWxY3BMIUoCVJvMtYczOZmqyk+eB/AGUqjrGEfabhjN0qWxoOP6Cuka+cSvlWmfQNQlLwK/qOyJm+eebcSnDP5FxHH+K+2bJUhzlQk+MMKbGQRiVoh3oD5K2BM7ACaPS3naZdRgGQ7U+X0zlv1bfZX2YMh1elWJPQIDAQAB",
+  "icons": {
+    "16": "icons/icon16.png"
+  },
+  "default_locale": "en",
+  "background": {
+    "service_worker": "src/service-worker.js"
+  },
+  "action": {
+    "default_title": "Sync tweets to Logseq",
+    "default_popup": "src/popup/popup.html"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "webNavigation",
+    "storage",
+    "gcm",
+    "system.cpu"
+  ],
+  "host_permissions": [
+    "https://publish.twitter.com/*",
+    "https://twitter.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://twitter.com/*"
+      ],
+      "js": [
+        "src/inject/parse-tweet.js",
+        "src/inject/tweet2md.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "matches": [
+        "https://twitter.com/*"
+      ],
+      "resources": [
+        "deps/turndown.js",
+        "deps/lit.js",
+        "src/popup/popup.js",
+        "src/execution-control.js"
+      ]
+    }
+  ]
+}
