@@ -7,6 +7,7 @@ function getTweets() {
   return parseTweets(postedTweets);
 }
 
+// TODO: implement page scroll to find more tweets.
 function parseTweets(tweetElements) {
   // A list of {"url": URL, "text": text, "media":?}
   const tweets = [];

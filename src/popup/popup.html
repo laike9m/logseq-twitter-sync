@@ -4,10 +4,13 @@
 <script type="module" src="../../deps/lit.js"></script>
 <script type="module" src="popup.js"></script>
 
-<div id="mainPopup" style="height: 30px">
+<div id="mainPopup" style="height: auto; width: 200px">
+	<!-- TODO: if there's no valid sync options, show a link to options page -->
 	<p>Pick the instance you want to activate</p>
 	<instance-list id="instance-list"></instance-list>
 	<br>
-	<button id="sync-button">Sync tweets to Logseq</button>
+	<auto-sync-switch></auto-sync-switch>
+	<br>
+	<manual-sync-button></manual-sync-button>
 
 </div>

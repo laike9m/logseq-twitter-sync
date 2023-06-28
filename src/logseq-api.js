@@ -1,40 +1,12 @@
 /* Wraps Logseq local server API */
 
-cl = console.log;
+var cl = console.log;
 
 const Methods = Object.freeze({
   INSERT_BLOCK: 'logseq.Editor.insertBlock',
 });
 
-const SyncModes = Object.freeze({
-  TO_JOURNAL: 'to_journal',
-  TO_PAGE: 'to_page',
-});
-
-class SyncOptions {
-  // Use parameter destructuring.
-  constructor({
-    apiURL = 'http://127.0.0.1:12315/api',
-    token = 'test-token',
-    syncMode = SyncModes.TO_JOURNAL,
-    syncTarget = undefined,
-  } = {}) {
-    this.apiURL = apiURL;
-    this.token = token;
-    this.syncMode = syncMode;
-    this.syncTarget = syncTarget;  // TODO: this should be page + block
-    this.validate();
-  }
-
-  // Validate options and throw an error if invalid.
-  validate() {
-    if (syncMode === SyncModes.TO_PAGE && !syncTarget) {
-      throw new Error('syncTarget is required when syncMode is TO_PAGE');
-    }
-  };
-}
-
-async function syncTweetsToLogseq(tweets, options = new SyncOptions()) {
+export async function syncTweetsToLogseq(tweets) {
   cl(tweets);
 
   for (let tweet of tweets) {
@@ -43,9 +15,9 @@ async function syncTweetsToLogseq(tweets, options = new SyncOptions()) {
   }
 }
 
-async function syncTweet(tweet, options) {
+async function syncTweet(tweet) {
   const headers = {
-    'Authorization': `Bearer ${options.token}`,
+    'Authorization': `Bearer ${await readStorage('logseqToken')}`,
     'Content-Type': 'application/json'
   };
 
@@ -71,5 +43,4 @@ async function syncTweet(tweet, options) {
       args: ['Test Twitter Sync', `{{tweet ${tweet.url}}}`, { isPageBlock: true }]
     })
   });
-
 }

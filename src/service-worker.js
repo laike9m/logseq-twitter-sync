@@ -1,6 +1,7 @@
 var cl = console.log;
-importScripts("logseq-api.js");
-importScripts("execution-control.js");
+import { SyncModes, validateSyncOptions, chromeStorage, readStorage } from './common.js';
+import { syncInstances, eligibleToRun } from './execution-control.js';
+import { syncTweetsToLogseq } from './logseq-api.js';
 
 
 // Auto sync
@@ -10,6 +11,14 @@ chrome.runtime.onInstalled.addListener(async () => {
   await syncInstances();
   if (!await eligibleToRun()) {
     cl("Not eligible to run, exit");
+    return;
+  }
+
+  // TODO: move to the right place.
+  const [isValid, errorMessage] = await validateSyncOptions();
+  cl(`isValid: ${isValid}, errorMessage: ${errorMessage}`);
+  if (!isValid) {
+    cl("Sync options are invalid, exit");
     return;
   }
 

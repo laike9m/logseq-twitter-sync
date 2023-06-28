@@ -1,9 +1,9 @@
-import { html, css, LitElement } from '../../deps/lit.js';
+import { html, css, LitElement, until } from '../../deps/lit.js';
+import { SyncModes, validateSyncOptions, chromeStorage, readStorage } from '../common.js'
 
 var cl = console.log;
-const chromeStorage = chrome.storage.sync;
 
-// A super set of SyncOptions in logseq-api.js
+// TODO: add a save button, and validate user inputs, alert if invalid.
 class SyncOptions extends LitElement {
   static properties = {
     // For now only support one account
@@ -25,15 +25,15 @@ class SyncOptions extends LitElement {
   constructor() {
     super();
     (async () => {
-      this.twitterAccount = await this.readStorage("twitterAccount") || "";
-      this.fetchTweets = await this.readStorage("fetchTweets") || false;
-      this.fetchReplies = await this.readStorage("fetchReplies") || false;
-      this.fetchLikes = await this.readStorage("fetchLikes") || false;
-      this.contentFilter = await this.readStorage("contentFilter") || "";
-      this.syncMode = await this.readStorage("syncMode") || "to_journal";
-      this.syncTarget = await this.readStorage("syncTarget") || "";
-      this.logseqToken = await this.readStorage("logseqToken") || "";
-      this.apiURL = await this.readStorage("apiURL") || "http://127.0.0.1:12315/api";
+      this.twitterAccount = await readStorage("twitterAccount") || "";
+      this.fetchTweets = await readStorage("fetchTweets") || false;
+      this.fetchReplies = await readStorage("fetchReplies") || false;
+      this.fetchLikes = await readStorage("fetchLikes") || false;
+      this.contentFilter = await readStorage("contentFilter") || "";
+      this.syncMode = await readStorage("syncMode") || SyncModes.TO_JOURNAL;
+      this.syncTarget = await readStorage("syncTarget") || "";
+      this.logseqToken = await readStorage("logseqToken") || "";
+      this.apiURL = await readStorage("apiURL") || "http://127.0.0.1:12315/api";
     })();
 
   }
@@ -94,10 +94,10 @@ class SyncOptions extends LitElement {
 
       <p>Step 3. Select where to sync tweets to</p>
       <select id="syncMode" @change="${this.handleSyncModeChange}">
-        <option value="to_journal" ?selected="${this.syncMode === 'to_journal'}">
+        <option value="to_journal" ?selected="${this.syncMode === SyncModes.TO_JOURNAL}">
           to journal
         </option>
-        <option value="to_page" ?selected="${this.syncMode === 'to_page'}">
+        <option value="to_page" ?selected="${this.syncMode === SyncModes.TO_PAGE}">
           to page
         </option>
       </select>
@@ -132,15 +132,15 @@ class SyncOptions extends LitElement {
         .value="${this.apiURL}"
         @input="${this.handleApiURLChange}"
       />
-    `;
-  }
 
-  async readStorage(key) {
-    if (key === 'syncMode') {
-      cl("from storage");
-      cl((await chromeStorage.get(key))[key]);
-    }
-    return (await chromeStorage.get(key))[key];
+      ${until(
+        validateSyncOptions().then(([isValid, errorMessage]) => isValid
+          ? html`<p style="color: green;">Settings are valid</p>`
+          : html`<p style="color: red;">Settings are invalid:<br> ${errorMessage}</p>`),
+        html`Validating...`,
+      )}
+
+    `;
   }
 
   handleTwitterAccountChange(event) {

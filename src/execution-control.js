@@ -4,6 +4,8 @@ This file is used by both service worker and popup.
 Stores a map of instance ID => InstanceInfo{ id, name, model, isActive }
 */
 
+import { chromeStorage } from './common.js';
+
 var cl = console.log;
 
 // clear storage for testing
@@ -20,35 +22,32 @@ class InstanceInfo {
   }
 }
 
-const chromeStorage = chrome.storage.sync;
-
-async function currentInstanceID() {
-  return await chrome.instanceID.getID();
+export async function currentInstanceID() {
+  return chrome.instanceID.getID();
 }
 
-async function isCurrent(id) {
+export async function isCurrent(id) {
   const currentID = await currentInstanceID();
   cl(`currentID: ${currentID}, id: ${id}, euqal: ${currentID === id}`);
   return currentID === id;
 }
 
-async function getInstances() {
+export async function getInstances() {
   let instances = (await chromeStorage.get("instances")).instances;
   // Turn JSON into a map since chrome storage only stores JSON.
   return instances === undefined ? new Map() : new Map(Object.entries(instances));
 }
 
-async function getInstanceById(id) {
+export async function getInstanceById(id) {
   let instances = await getInstances();
   return instances.get(id);
 }
 
-async function getCurrentInstance() {
+export async function getCurrentInstance() {
   return await getInstanceById(await currentInstanceID());
 }
 
-/* insert or update an instance */
-async function insertOrUpdateInstance(instanceInfo) {
+export async function insertOrUpdateInstance(instanceInfo) {
   cl(`set instance:`);
   cl(instanceInfo);
   let instances = await getInstances();
@@ -73,7 +72,7 @@ async function insertOrUpdateInstance(instanceInfo) {
 //
 // TODO: add a timeout to stored info, since instance ID can change
 // e.g. https://stackoverflow.com/questions/42468802/
-async function syncInstances() {
+export async function syncInstances() {
   cl("call syncInstances");
   let instances = await getInstances();
   const currentInstance = {
@@ -99,12 +98,12 @@ async function syncInstances() {
 }
 
 /* Determines whether the current extension instance should fetch tweets */
-async function eligibleToRun() {
+export async function eligibleToRun() {
   const instance = await getCurrentInstance();
   return instance.isActive;
 }
 
-async function activateInstanceById(id) {
+export async function activateInstanceById(id) {
   const instance = await getInstanceById(id);
   instance.isActive = true;
   await insertOrUpdateInstance(instance);

@@ -1,8 +1,10 @@
 
 import { html, css, LitElement } from '../../deps/lit.js';
+import { chromeStorage, readStorage } from '../common.js'
 
 var cl = console.log;
 
+// TODO: show if the current SyncOptions are valid or not, with a link to the options page.
 export class InstanceList extends LitElement {
   static styles = css`p { color: blue }`;
 
@@ -24,7 +26,6 @@ export class InstanceList extends LitElement {
     this.instances = Array.from((await getInstances()).values());
   }
 
-  // TODO: allow users to deselect all instances
   render() {
     return html`
       ${this.instances?.map((instance) => {
@@ -50,12 +51,97 @@ export class InstanceList extends LitElement {
 }
 customElements.define('instance-list', InstanceList);
 
+class AutoSyncSwitch extends LitElement {
+  static styles = css`
+    :host {
+      display: inline-block;
+    }
 
-document.onload = async function () {
-  const syncButton = document.getElementById('sync-button');
-  syncButton.onclick = function () {
-    console.log("button clicked");
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+      background-color: #ccc;
+      border-radius: 10px;
+      cursor: pointer;
+    }
 
-    chrome.runtime.sendMessage("manual sync");
+    .toggle-switch:before {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background-color: white;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s;
+    }
+
+    .toggle-switch.checked {
+      background-color: #2196F3;
+    }
+
+    .toggle-switch.checked:before {
+      transform: translateX(20px);
+    }`;
+
+  static properties = {
+    autoSyncEnabled: { type: Boolean },
   };
-};
+
+  constructor() {
+    super();
+    (async () => {
+      this.autoSyncEnabled = await readStorage("autoSyncEnabled") || false;
+      log(`this.autoSyncEnabled: ${this.autoSyncEnabled}`);
+    })();
+  }
+
+  render() {
+    return html`
+      <label>Auto Sync</label>
+      <div class="toggle-switch ${this.autoSyncEnabled ? 'checked' : ''}"
+           @click="${this.toggleAutoSync}">
+      </div>
+    `;
+  }
+
+  toggleAutoSync() {
+    this.autoSyncEnabled = !this.autoSyncEnabled;
+    chromeStorage.set({ autoSyncEnabled: this.autoSyncEnabled });
+  }
+}
+
+customElements.define('auto-sync-switch', AutoSyncSwitch);
+
+class ManualSyncButton extends LitElement {
+  static styles = css`
+    :host {
+      display: inline-block;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  `;
+
+  render() {
+    return html`
+      <button @click="${this.handleClick}">Manual Sync</button>
+    `;
+  }
+
+  handleClick() {
+    console.log("button clicked");
+    chrome.runtime.sendMessage("manual sync");
+  }
+}
+
+customElements.define('manual-sync-button', ManualSyncButton);
